@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import InputContainer from "./components/InputContainer";
 import Preview from "./components/Preview";
 import placeholder from "./images/avatar_placeholder.png";
-import previewImg from "./images/Rafet.jpg";
+import previewImg from "./images/profile-picture.jpg";
 
 const accordion = (target) => {
   document.querySelectorAll("details").forEach(detail => {
