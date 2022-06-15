@@ -1,53 +1,35 @@
-import React, { Component } from 'react';
 import FormEducation from './FormEducation';
 import FormExperience from './FormExperience';
 import FormProfile from './FormProfile';
 
-
-class InputContainer extends Component {
-  constructor(props) {
-    super(props);
-    this.accordion = this.accordion.bind(this)
-  }
-
-  accordion = () => {
+const InputContainer = ({mode, profile, experiences, education, handleChange, handleFile, handleAdd, submitEdit}) => {
+  const accordion = () => {
     document.querySelectorAll("details").forEach(el => {
       el.removeAttribute("open")
     })
   }
-
-  render() {
-    const {
-      handleChange,
-      handleFile,
-      handleAdd,
-      submitEdit,
-      data
-    } = this.props
-
-    return (
-      <div className='forms'>
-        <FormProfile
-          handleChange={handleChange}
-          handleFile={handleFile}
-          mode={data.mode}
-          data={data.profile}
-          accordion={this.accordion} />
-        <FormExperience
-          handleAdd={handleAdd}
-          submitEdit={submitEdit}
-          mode={data.mode}
-          data={data.experiences}
-          accordion={this.accordion} />
-        <FormEducation
-          handleAdd={handleAdd}
-          submitEdit={submitEdit}
-          mode={data.mode}
-          data={data.education}
-          accordion={this.accordion} />
-      </div>
-    );
-  }
+  return (
+    <div className='forms'>
+      <FormProfile
+        handleChange={handleChange}
+        handleFile={handleFile}
+        mode={mode}
+        data={profile}
+        accordion={accordion} />
+      <FormExperience
+        handleAdd={handleAdd}
+        submitEdit={submitEdit}
+        mode={mode}
+        data={experiences}
+        accordion={accordion} />
+      <FormEducation
+        handleAdd={handleAdd}
+        submitEdit={submitEdit}
+        mode={mode}
+        data={education}
+        accordion={accordion} />
+    </div>
+  );
 }
 
 export default InputContainer;

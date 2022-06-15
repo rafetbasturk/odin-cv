@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import { useState } from 'react';
 import InputContainer from "./components/InputContainer";
 import Preview from "./components/Preview";
 import placeholder from "./images/avatar_placeholder.png";
@@ -86,56 +86,33 @@ const previewState = {
   ]
 }
 
-class App extends Component {
-  constructor(props) {
-    super(props);
-    this.state = initialState
-    this.handleChange = this.handleChange.bind(this)
-    this.handleFile = this.handleFile.bind(this)
-    this.setPreview = this.setPreview.bind(this)
-    this.clearPreview = this.clearPreview.bind(this)
-    this.handleAdd = this.handleAdd.bind(this)
-    this.setEdit = this.setEdit.bind(this)
-    this.handleEdit = this.handleEdit.bind(this)
-    this.submitEdit = this.submitEdit.bind(this)
-    this.handleDelete = this.handleDelete.bind(this)
+function App() {
+  const [mode, setMode] = useState(initialState.mode);
+  const [profile, setProfile] = useState(initialState.profile);
+  const [experiences, setExperiences] = useState(initialState.experiences);
+  const [education, setEducation] = useState(initialState.education);
+  const [editId, setEditId] = useState(initialState.editId);
+
+  const setEdit = () => {
+    setMode("edit")
+    accordion(document.querySelector("#details-pro"))
   }
 
-  handleChange = e => {
+  const handleChange = e => {
     const { name, value } = e.target
-    this.setState({
-      ...this.state,
-      profile: {
-        ...this.state.profile,
-        [name]: value
-      }
-    })
+    setProfile({ ...profile, [name]: value })
   }
 
-  handleFile = e => {
+  const handleFile = e => {
     const { name, files } = e.target
     const reader = new FileReader()
     reader.onload = (() => {
-      this.setState({
-        ...this.state,
-        profile: {
-          ...this.state.profile,
-          [name]: reader.result
-        }
-      })
+      setProfile({ ...profile, [name]: reader.result })
     });
     reader.readAsDataURL(files[0])
   }
 
-  setPreview = () => {
-    this.setState(previewState)
-  }
-
-  clearPreview = e => {
-    this.setState(initialState)
-  }
-
-  handleAdd = e => {
+  const handleAdd = e => {
     e.preventDefault()
     const id = new Date().getTime()
     let obj = { id }
@@ -146,39 +123,43 @@ class App extends Component {
       }
     })
 
-    this.setState(prev => {
-      if (e.target.id === "exp") {
-        return {
-          ...prev,
-          experiences: [...prev.experiences, obj]
-        }
-      }
-      else {
-        return {
-          ...prev,
-          education: [...prev.education, obj]
-        }
-      }
-    })
+    if (e.target.id === "exp") {
+      setExperiences([...experiences, obj])
+    }
+    else {
+      setEducation([...education, obj])
+    }
 
     e.target.reset()
   }
 
-  setEdit = () => {
-    this.setState({
-      ...this.state, mode: "edit"
+  const submitEdit = e => {
+    e.preventDefault()
+    const id = editId
+    let obj = { id }
+    Array.from(e.target.elements).forEach(el => {
+      const { name, value } = el
+      if (name) {
+        obj = { ...obj, [name]: value }
+      }
     })
-    accordion(document.querySelector("#details-pro"))
+
+    if (e.target.id === "exp") {
+      setExperiences(experiences.map(exp => exp.id === id ? obj : exp))
+    }
+    else {
+      setEducation(education.map(edu => edu.id === id ? obj : edu))
+    }
+
+    setMode("add")
+    e.target.reset()
   }
 
-  handleEdit = e => {
+  const handleEdit = e => {
     const target = e.currentTarget.parentElement.parentElement
     accordion(target)
     const targetId = Number(target.dataset.id)
-    this.setState({
-      ...this.state,
-      editId: targetId
-    })
+    setEditId(targetId)
 
     if (target.classList.contains("edu")) {
       const {
@@ -186,7 +167,7 @@ class App extends Component {
         to,
         school,
         department
-      } = this.state.education.filter(edu => edu.id === targetId)[0]
+      } = education.filter(edu => edu.id === targetId)[0]
 
       const form = document.querySelector("#edu")
       form.elements[0].value = from
@@ -194,14 +175,14 @@ class App extends Component {
       form.elements[2].value = school
       form.elements[3].value = department
     }
-    else if (target.classList.contains("exp")) {
+    else {
       const {
         from,
         to,
         company,
         position,
         description
-      } = this.state.experiences.filter(exp => exp.id === targetId)[0]
+      } = experiences.filter(exp => exp.id === targetId)[0]
 
       const form = document.querySelector("#exp")
       form.elements[0].value = from
@@ -212,81 +193,61 @@ class App extends Component {
     }
   }
 
-  submitEdit = e => {
-    e.preventDefault()
-    const id = this.state.editId
-    let obj = { id }
-    Array.from(e.target.elements).forEach(el => {
-      const { name, value } = el
-      if (name) {
-        obj = { ...obj, [name]: value }
-      }
-    })
-
-    this.setState(prev => {
-      if (e.target.id === "exp") {
-        return {
-          ...prev,
-          mode: "add",
-          experiences: prev.experiences.map(exp => exp.id === id ? obj : exp )
-        }
-      }
-      else {
-        return {
-          ...prev,
-          mode: "add",
-          education: prev.education.map(edu => edu.id === id ? obj : edu )
-        }
-      }
-    })
-
-    e.target.reset()
-  }
-
-  handleDelete = e => {
+  const handleDelete = e => {
     const el = e.currentTarget.parentElement.parentElement
     const id = Number(el.dataset.id)
-    this.setState(prev => {
-      if (el.classList.contains("edu")) {
-        return {
-          ...prev,
-          education: prev.education.filter(edu => edu.id !== id)
-        }
-      }
-      else {
-        return {
-          ...prev,
-          experiences: prev.experiences.filter(edu => edu.id !== id)
-        }
-      }
-    })
+    if (el.classList.contains("edu")) {
+      setEducation(prev => prev.filter(edu => edu.id !== id))
+    }
+    else {
+      setExperiences(prev => prev.filter(edu => edu.id !== id))
+    }
   }
 
-  render() {
-    return (
-      <>
-        <main className="input-container">
-          <InputContainer
-            data={this.state}
-            handleChange={this.handleChange}
-            handleFile={this.handleFile}
-            handleAdd={this.handleAdd}
-            submitEdit={this.submitEdit}
-          />
-
-          <div className="btn-container">
-            <button onClick={this.clearPreview}>Clear Preview</button>
-            <button onClick={this.setEdit}>Edit</button>
-            <button onClick={this.setPreview}>Sample Preview</button>
-          </div>
-        </main>
-        <Preview
-          handleEdit={this.handleEdit}
-          handleDelete={this.handleDelete}
-          data={this.state} />
-      </>
-    );
+  const clearPreview = () => {
+    setMode(initialState.mode)
+    setProfile(initialState.profile)
+    setExperiences(initialState.experiences)
+    setEducation(initialState.education)
   }
+
+  const setPreview = () => {
+    setMode(previewState.mode)
+    setProfile(previewState.profile)
+    setExperiences(previewState.experiences)
+    setEducation(previewState.education)
+  }
+
+  return (
+    <>
+      <main className="input-container">
+        <InputContainer
+          mode={mode}
+          profile={profile}
+          experiences={experiences}
+          education={education}
+          handleChange={handleChange}
+          handleFile={handleFile}
+          handleAdd={handleAdd}
+          submitEdit={submitEdit}
+        />
+
+        <div className="btn-container">
+          <button onClick={clearPreview}>Clear Preview</button>
+          <button onClick={setEdit}>Edit</button>
+          <button onClick={setPreview}>Sample Preview</button>
+        </div>
+      </main>
+      <Preview
+        mode={mode}
+        profile={profile}
+        experiences={experiences}
+        education={education}
+        handleEdit={handleEdit}
+        handleDelete={handleDelete}
+      />
+    </>
+  );
 }
 
 export default App;
